@@ -1,0 +1,64 @@
+body {
+	background: #ffffff;  
+	text-align: center; 
+	padding: 20px; 
+	color: #575757; 
+	font: 14px/21px Arial,Helvetica,sans-serif;
+}
+
+a {
+	color: #B93F14;
+}
+
+a:hover {
+	text-decoration: none;
+}
+
+ol {
+	width: 600px; 
+	text-align: left; 
+	margin: 15px auto
+}
+
+canvas {
+	border: 1px solid black;
+}
+#status-row {
+	display: none;
+	text-align: center;
+}
+
+#status {
+	display: table-cell;
+	width: 100%;
+	vertical-align: middle;
+}
+
+#reset {
+	display: inline;
+	width: 32px;
+	height: 32px;
+	vertical-align: middle;
+}
+
+#my-id {
+	text-align: center;
+	font-weight: bold;
+	font-size: 1.3em;
+	/*letter-spacing: 3px;*/
+}
+#container {
+	text-align: center;
+	border-radius: 10px;
+	background-color: #FF9640;
+	position: absolute;
+	top: 20%;
+	left: 20%;
+	margin: -55px 0 0 -50px;
+	padding: 5px;
+	width: 210px;
+	height: 150px;
+	border-width: 1px;
+	border-color: black;
+	border-style: solid;
+}

@@ -1,0 +1,85 @@
+body {
+	text-align: center; 
+	padding: 20px; 
+	color: #575757; 
+	font: 14px/21px Arial,Helvetica,sans-serif;
+	background-color: #009999;
+	font-family: sans-serif;
+}
+
+a {
+	color: #B93F14;
+}
+
+a:hover {
+	text-decoration: none;
+}
+
+ol {
+	width: 600px; 
+	text-align: left; 
+	margin: 15px auto
+}
+
+canvas {
+	border: 1px solid black;
+}
+#status-row {
+	display: none;
+	text-align: center;
+}
+
+#status {
+	display: table-cell;
+	width: 100%;
+	vertical-align: middle;
+}
+
+#reset {
+	display: inline;
+	width: 32px;
+	height: 32px;
+	vertical-align: middle;
+}
+
+#my-id {
+	text-align: center;
+	font-weight: bold;
+	font-size: 1.3em;
+	/*letter-spacing: 3px;*/
+}
+#container {
+	text-align: center;
+	border-radius: 10px;
+	background-color: #FF9640;
+	position: absolute;
+	top: 20%;
+	left: 20%;
+	margin: -55px 0 0 -50px;
+	padding: 5px;
+	width: 210px;
+	height: 150px;
+	border-width: 1px;
+	border-color: black;
+	border-style: solid;
+}
+.pure-button-success,
+.pure-button-error,
+.pure-button-warning,
+.pure-button-secondary {
+  color: white;
+  border-radius: 4px;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+.pure-button-success {
+  background: rgb(28, 184, 65); /* this is a green */
+}
+.pure-button-error {
+  background: rgb(202, 60, 60); /* this is a maroon */
+}
+.pure-button-warning {
+  background: rgb(223, 117, 20); /* this is an orange */
+}
+.pure-button-secondary {
+  background: rgb(66, 184, 221); /* this is a light blue */
+}
