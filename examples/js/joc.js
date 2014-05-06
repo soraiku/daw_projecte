@@ -2,6 +2,7 @@ window.onload = function (){
     
   //Avisa que el documents està ready
   console.log( "ready!" );
+  var master;
 
   //videocall
   navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
@@ -177,24 +178,53 @@ window.onload = function (){
       
     }
     //*********************************************************************************************************//
-    else if (c.label === 'moviments_enemics') { 
+    else if (c.label === 'Joc_connection') { 
 
         //connexió OK--inciar el joc
-        //setInterval(mou_enemics,25);
+        //setInterval(joc,25);
         setUpGame();
-        setInterval(mou_enemics,25);
-        
-        //mou_enemics();
+        setInterval(joc,25);
 
             c.on('data', function(data) {
 
                //handleTick(data[0][0],data[0][1]);
                //console.log("data");
                var json = JSON.parse(data);
-
+               //console.log(json["token"]);
                //console.log(json);
-               handleTick(json["moviments_enemics_x"],json["moviments_enemics_y"],json["num_enemies"]);
-
+               if(aux>parseInt(json["token"])){
+                    master=true;
+                    //console.log("Soc master");
+               }else{
+                    master=false;
+                    //console.log("Soc esclau :/");
+               }
+              
+                if(json["Joc_connection_x"]!=undefined){
+                  p=json["Joc_connection_x"];
+                  c=json["Joc_connection_y"];
+                  d=parseInt(json["num_enemies"]);
+                  handleTick(p,c,d);
+                  console.log(json["avatarX"]);
+                  //ratoli(json["avatarX"],json["avatarY"]);
+                  
+                }
+                if(master==true){
+                  console.log("soc master");
+                  if(local_mov!=undefined){
+                    json_local=JSON.parse(local_mov);
+                    p=json_local["Joc_connection_x"];
+                    c=json_local["Joc_connection_y"];
+                    d=parseInt(json_local["num_enemies"]);
+                    handleTick(p,c,d);
+                    //ratoli(json_local["avatarX"],json_local["avatarY"]);
+                    //handleTick(json_local["Joc_connection_x"],json_local["Joc_connection_y"],parseInt(json_local["num_enemies"]));
+                    //console.log("local"+local_mov);
+                  }
+                  
+                }
+                
+                
 
             });
 
@@ -247,9 +277,9 @@ window.onload = function (){
             //connexió per els enemics
             /**********************************************************************************************/
             /**********************************************************************************************/
-            //var f = peer.connect(requestedPeer, { label: 'moviments_enemics', reliable: true });
+            //var f = peer.connect(requestedPeer, { label: 'Joc_connection', reliable: true });
             var f = peer.connect(requestedPeer, {
-              label: 'moviments_enemics',
+              label: 'Joc_connection',
               serialization: 'none',
               metadata: {message: 'mov'}
             });
@@ -292,25 +322,44 @@ window.onload = function (){
     });
 
 /**************************************************************************************/
-      
-      function mou_enemics() {
-       // console.log("estic foradela funcio eachActiveConnection però din de mou_enemics");
+      var token= Math.floor((Math.random() * 100) + 1);
+      var aux = token;
+      num_enemies=0;
+      enemyXPositions=[];
+      enemyYPositions=[];
+      max_enemies=20;
+      var local_mov;
+      var au=0; 
+      function joc() {
+       // console.log("estic foradela funcio eachActiveConnection però din de joc");
        eachActiveConnection(function(c, $c) {
-       if (c.label === 'moviments_enemics') {
-          //console.log("mou_enemics - label moviments_enemics");
+       if (c.label === 'Joc_connection') {
+         
+        c.send(JSON.stringify({"token":token}));
           
+          var current_enemies = 0;
           var num_enemies = enemyXPositions.length;
-          
+      
           if (Math.random() < 1/20)
           {
-            enemyYPositions.push(0);
+            enemyYPositions.push(0)+1;
             enemyXPositions.push(Math.random() * 400);
           }
 
-          //var array=[enemyXPositions,enemyYPositions];
-          //console.log("num_enemies"+num_enemies);
-          //c.send([enemyXPositions,enemyYPositions]);
-          c.send(JSON.stringify({"moviments_enemics_x" : enemyXPositions, "moviments_enemics_y": enemyYPositions, "num_enemies":num_enemies}));
+          while (current_enemies < num_enemies) {
+            enemyYPositions[current_enemies] = enemyYPositions[current_enemies] + 1;
+            current_enemies = current_enemies + 1;
+          }
+          
+
+        //nomes el master s'encarrega d'enviar dades
+          if(master==true){
+      
+
+          c.send(JSON.stringify({"Joc_connection_x" : enemyXPositions, "Joc_connection_y": enemyYPositions, "num_enemies":num_enemies}));
+          //desas les dadesamb els moviments que envies.
+          local_mov=JSON.stringify({"Joc_connection_x" : enemyXPositions, "Joc_connection_y": enemyYPositions, "num_enemies":num_enemies});
+        }
           
         }
        });
@@ -367,45 +416,40 @@ window.onload = function (){
 	  gameCanvas.getContext("2d").drawImage(img_avatar, Math.random() * 100, Math.random() * 100);
 	  
 	  gameCanvas.addEventListener("mousemove", handleMouseMovement);
-    //console.log("estic a setupGame");
-    //setInterval(mou_enemics,25);
-	  //setInterval(handleTick, 25);
+
+    
+    
+
   }
 
-  function handleMouseMovement(mouseEvent) {
-	  avatarX = mouseEvent.offsetX;
-	  avatarY = mouseEvent.offsetY;
-  }
+function handleMouseMovement(mouseEvent) {
+        avatarX = mouseEvent.offsetX;
+        console.log("x_Avatar"+avatarX);
+        avatarY = mouseEvent.offsetY;
 
+ }
 
-  function handleTick(enemyXPositions,enemyYPositions,num_enemies) {
-    //console.log("yyyy"+enemyYPositions);
-    console.log("num_enemies"+num_enemies);
-    var current_enemies = 0;
-    //var num_enemies = enemyXPositions.length;
-	  var gameCanvas = document.getElementById("gameCanvas");
+  var current_enemies = 0;
+  function handleTick(enemyXPositions,enemyYPositions,num_enemies)
+  {
+      var gameCanvas = document.getElementById("gameCanvas");
+      gameCanvas.width = 400;   //this erases the contents of the canvas
+      gameCanvas.getContext("2d").drawImage(img_avatar, avatarX, avatarY);
+      console.log("x"+avatarX);
+          
+      current_enemies = 0;
+      while (current_enemies < num_enemies) {
+          gameCanvas.getContext("2d").drawImage(img_enemy, enemyXPositions[current_enemies], enemyYPositions[current_enemies]);
+          current_enemies = current_enemies + 1;
+      }
 
-	  while (current_enemies < num_enemies) {
-		  enemyYPositions[current_enemies] = enemyYPositions[current_enemies] + 1;
-		  current_enemies = current_enemies + 1;
-	  }
-	  
-	  gameCanvas.width = 400;		//this erases the contents of the canvas
-	  gameCanvas.getContext("2d").drawImage(img_avatar, avatarX, avatarY);
-	  
-	  current_enemies = 0;
-	  while (current_enemies < num_enemies) {
-		  gameCanvas.getContext("2d").drawImage(img_enemy, enemyXPositions[current_enemies], enemyYPositions[current_enemies]);
-		  current_enemies = current_enemies + 1;
-	  }
-	  
-	  current_enemies = 0;
-	  while (current_enemies < num_enemies) {
-		  if ( ( (avatarX < enemyXPositions[current_enemies] && enemyXPositions[current_enemies] < avatarX + 30) || (enemyXPositions[current_enemies] < avatarX && avatarX < enemyXPositions[current_enemies] + 30) ) && ( (avatarY < enemyYPositions[current_enemies] && enemyYPositions[current_enemies] < avatarY + 33) || (enemyYPositions[current_enemies] < avatarY && avatarY < enemyYPositions[current_enemies] + 30) ) ) {
-			  console.log("You hit an enemy!");
-		  }
-		  current_enemies = current_enemies + 1;
-	  }	
+      current_enemies = 0;
+      while (current_enemies < num_enemies) {
+        if ( ( (avatarX < enemyXPositions[current_enemies] && enemyXPositions[current_enemies] < avatarX + 30) || (enemyXPositions[current_enemies] < avatarX && avatarX < enemyXPositions[current_enemies] + 30) ) && ( (avatarY < enemyYPositions[current_enemies] && enemyYPositions[current_enemies] < avatarY + 33) || (enemyYPositions[current_enemies] < avatarY && avatarY < enemyYPositions[current_enemies] + 30) ) ) {
+          console.log("You hit an enemy!");
+        }
+        current_enemies = current_enemies + 1;
+      } 
   }
 
  
