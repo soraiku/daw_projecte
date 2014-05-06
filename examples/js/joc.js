@@ -12,6 +12,8 @@ window.onload = function (){
   var enemyXPositions = [];
   var avatarX = 0;
   var avatarY = 0;
+  var avatar2x = 0;
+  var avatar2y = 0;
   var img_avatar;
   var img_enemy;
 
@@ -38,10 +40,13 @@ window.onload = function (){
     
   var connectedPeers = {};
 
+
   //mostrar id aleatori
   //usage 
   peer.on('open', function(id){
     $('#pid').text(id);
+
+    console.log(id);
     
   });
 
@@ -187,11 +192,7 @@ window.onload = function (){
 
             c.on('data', function(data) {
 
-               //handleTick(data[0][0],data[0][1]);
-               //console.log("data");
                var json = JSON.parse(data);
-               //console.log(json["token"]);
-               //console.log(json);
                if(aux>parseInt(json["token"])){
                     master=true;
                     //console.log("Soc master");
@@ -199,27 +200,30 @@ window.onload = function (){
                     master=false;
                     //console.log("Soc esclau :/");
                }
+
               
                 if(json["Joc_connection_x"]!=undefined){
-                  p=json["Joc_connection_x"];
-                  c=json["Joc_connection_y"];
-                  d=parseInt(json["num_enemies"]);
-                  handleTick(p,c,d);
-                  console.log(json["avatarX"]);
-                  //ratoli(json["avatarX"],json["avatarY"]);
+                  if(master==false)
+                  {
+                    x_enemics=json["Joc_connection_x"];
+                    y_enemics=json["Joc_connection_y"];
+                    num_enemies=json["num_enemies"];
+                    x_avatar=json["avatarX"];
+                    y_avatar=json["avatarY"];
                   
+                    handleTick(x_enemics,y_enemics,num_enemies,x_avatar,y_avatar,avatar2x,avatar2y);
+                  
+                  }
                 }
+
                 if(master==true){
-                  console.log("soc master");
-                  if(local_mov!=undefined){
+                  if(local_mov!=undefined)
+                  {
                     json_local=JSON.parse(local_mov);
-                    p=json_local["Joc_connection_x"];
-                    c=json_local["Joc_connection_y"];
-                    d=parseInt(json_local["num_enemies"]);
-                    handleTick(p,c,d);
-                    //ratoli(json_local["avatarX"],json_local["avatarY"]);
-                    //handleTick(json_local["Joc_connection_x"],json_local["Joc_connection_y"],parseInt(json_local["num_enemies"]));
-                    //console.log("local"+local_mov);
+                    x_enemics=json_local["Joc_connection_x"];
+                    y_enemics=json_local["Joc_connection_y"];
+                    num_enemies=json_local["num_enemies"];
+                    handleTick(x_enemics,y_enemics,num_enemies,avatarX,avatarY,json["avatar2x"],json["avatar2y"]);
                   }
                   
                 }
@@ -334,15 +338,17 @@ window.onload = function (){
        // console.log("estic foradela funcio eachActiveConnection però din de joc");
        eachActiveConnection(function(c, $c) {
        if (c.label === 'Joc_connection') {
-         
-        c.send(JSON.stringify({"token":token}));
+          
+          document.getElementById("gameCanvas").addEventListener("mousemove", mouse_avatar2);
+          //c.send(JSON.stringify({"avatar2x":avatar2x,"avatar2y":avatar2y}));
+          c.send(JSON.stringify({"token":token,"avatar2x":avatar2x,"avatar2y":avatar2y}));
           
           var current_enemies = 0;
           var num_enemies = enemyXPositions.length;
       
           if (Math.random() < 1/20)
           {
-            enemyYPositions.push(0)+1;
+            enemyYPositions.push(0);
             enemyXPositions.push(Math.random() * 400);
           }
 
@@ -354,13 +360,13 @@ window.onload = function (){
 
         //nomes el master s'encarrega d'enviar dades
           if(master==true){
-      
-
-          c.send(JSON.stringify({"Joc_connection_x" : enemyXPositions, "Joc_connection_y": enemyYPositions, "num_enemies":num_enemies}));
+          
+          document.getElementById("gameCanvas").addEventListener("mousemove", handleMouseMovement);
+          c.send(JSON.stringify({"Joc_connection_x" : enemyXPositions, "Joc_connection_y": enemyYPositions, "num_enemies":num_enemies,"avatarX":avatarX,"avatarY":avatarY}));
           //desas les dadesamb els moviments que envies.
           local_mov=JSON.stringify({"Joc_connection_x" : enemyXPositions, "Joc_connection_y": enemyYPositions, "num_enemies":num_enemies});
         }
-          
+
         }
        });
     };
@@ -409,34 +415,36 @@ window.onload = function (){
   function setUpGame() {
 	  var gameCanvas = document.getElementById("gameCanvas");
 	  img_avatar = new Image();
+    img_avatar2 = new Image();
 	  img_enemy = new Image();
 	  img_enemy.src = "img/enemy.png";
 	  img_avatar.src = "img/avatar.png";
+    img_avatar2.src = "img/avatar2.png";
 	  
 	  gameCanvas.getContext("2d").drawImage(img_avatar, Math.random() * 100, Math.random() * 100);
+    gameCanvas.getContext("2d").drawImage(img_avatar2, Math.random() * 100, Math.random() * 100);
 	  
-	  gameCanvas.addEventListener("mousemove", handleMouseMovement);
-
-    
-    
+	  //gameCanvas.addEventListener("mousemove", handleMouseMovement);  
 
   }
 
 function handleMouseMovement(mouseEvent) {
         avatarX = mouseEvent.offsetX;
-        console.log("x_Avatar"+avatarX);
         avatarY = mouseEvent.offsetY;
-
  }
 
+ function mouse_avatar2(mouseEvent) {
+        avatar2x = mouseEvent.offsetX;
+        avatar2y= mouseEvent.offsetY;
+ }
   var current_enemies = 0;
-  function handleTick(enemyXPositions,enemyYPositions,num_enemies)
+  function handleTick(enemyXPositions,enemyYPositions,num_enemies,avatarX,avatarY,avatar2x,avatar2y)
   {
       var gameCanvas = document.getElementById("gameCanvas");
       gameCanvas.width = 400;   //this erases the contents of the canvas
       gameCanvas.getContext("2d").drawImage(img_avatar, avatarX, avatarY);
-      console.log("x"+avatarX);
-          
+      gameCanvas.getContext("2d").drawImage(img_avatar2, avatar2x, avatar2y);
+      
       current_enemies = 0;
       while (current_enemies < num_enemies) {
           gameCanvas.getContext("2d").drawImage(img_enemy, enemyXPositions[current_enemies], enemyYPositions[current_enemies]);
@@ -445,8 +453,11 @@ function handleMouseMovement(mouseEvent) {
 
       current_enemies = 0;
       while (current_enemies < num_enemies) {
-        if ( ( (avatarX < enemyXPositions[current_enemies] && enemyXPositions[current_enemies] < avatarX + 30) || (enemyXPositions[current_enemies] < avatarX && avatarX < enemyXPositions[current_enemies] + 30) ) && ( (avatarY < enemyYPositions[current_enemies] && enemyYPositions[current_enemies] < avatarY + 33) || (enemyYPositions[current_enemies] < avatarY && avatarY < enemyYPositions[current_enemies] + 30) ) ) {
-          console.log("You hit an enemy!");
+        if ( ( (avatarX < enemyXPositions[current_enemies] && enemyXPositions[current_enemies] < avatarX + 32) || (enemyXPositions[current_enemies] < avatarX && avatarX < enemyXPositions[current_enemies] + 32) ) && ( (avatarY < enemyYPositions[current_enemies] && enemyYPositions[current_enemies] < avatarY + 32) || (enemyYPositions[current_enemies] < avatarY && avatarY < enemyYPositions[current_enemies] + 32) ) ) {
+          console.log("master_hit");
+        }
+         if ( ( (avatar2x < enemyXPositions[current_enemies] && enemyXPositions[current_enemies] < avatar2x + 23) || (enemyXPositions[current_enemies] < avatar2x && avatar2x < enemyXPositions[current_enemies] + 23) ) && ( (avatar2y < enemyYPositions[current_enemies] && enemyYPositions[current_enemies] < avatar2y + 43) || (enemyYPositions[current_enemies] < avatar2y && avatar2y < enemyYPositions[current_enemies] + 32) ) ) {
+          console.log("esclau_hit");
         }
         current_enemies = current_enemies + 1;
       } 
